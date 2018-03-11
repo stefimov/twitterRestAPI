@@ -32,7 +32,7 @@ public class GarbageTweetsHandler {
 	{
 		
 		//в цикле проходим по всем элементам tweetsToRemove, определяем автора сообщения и передаём id_твита и данные для авторизации 
-		// в метод deleteTweet для выполнения удаления
+		//в метод deleteTweet для выполнения удаления
 		for(Map.Entry<String, String> pair : tweetsToRemove.entrySet())
 		{
 			if(pair.getValue().equals(authData.consumer_1_Name))
