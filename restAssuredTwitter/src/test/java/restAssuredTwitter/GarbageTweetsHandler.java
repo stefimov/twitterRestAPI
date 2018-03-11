@@ -41,6 +41,7 @@ public class GarbageTweetsHandler {
 				deleteTweet(pair.getKey(), authData.consumer_2_Key, authData.consumer_2_Secret);	
 		}
 		
+		//очищаем список после того как все твиты были удалены
 		tweetsToRemove.clear();
 	}
 	
