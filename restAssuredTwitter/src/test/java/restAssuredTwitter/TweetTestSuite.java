@@ -153,6 +153,43 @@ class TweetTestSuite {
 		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
 	}
 	
+	
+	/*
+	 * Максимальная длина сообщения для отправки равна 280 символов.
+	 * Проверяем в кейсе возможность не урезается ли сообщение максимальной длины после постинга.
+	 */
+	@Test
+	void testCase05() throws IOException {
+		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
+		InputStream is = classloader.getResourceAsStream(fileName);
+		String message = new String(IOUtils.toByteArray(is)).substring(0, 280);		//считываем InputStream массив байтов, преобразуем в строку,
+																					//выделяем полстроку длиной 280 символов и формируем 
+																					//отправляемое сообщение нужной длины
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).								//добавляем сообщение из 280 символов
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		
+		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
+				
+		//получаем твит с нужным id с помощью GET /show.json, передавая в него id созданного до этого твита
+		//в ответном JSON поле "text" должно в себе содержать всё сообщение, отправленное в message
+		given().
+		auth().oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		param("id", id).
+		param("tweet_mode", "extended").		//параметр tweet_mode=extended для того чтобы в полученном в ответе JSON сообщение не было свёрнуто до 115 символов и ссылки
+		when().
+		get("/show.json").
+		then().
+		body("full_text", equalTo(message));
+	}
 	/*
 	 * Максимальная длина сообщения для отправки равна 280 символов.
 	 * Проверяем в кейсе невозможность отправки сообщения большей длины.
@@ -161,7 +198,7 @@ class TweetTestSuite {
 	 * {errors:[{"code":186,"Message":"some_error_message"}]}
 	 */
 	@Test
-	void testCase05() throws IOException {
+	void testCase06() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
@@ -188,7 +225,7 @@ class TweetTestSuite {
 	 * {"errors":[{"code":187,"message":"Status is a duplicate."}]}
 	 * */
 	@Test
-	void testCase06() {
+	void testCase07() {
 		String message = "a";	//отправляемое сообщение
 		
 		Response response = given().
@@ -210,7 +247,6 @@ class TweetTestSuite {
 		param("status", message).									//добавляем сообщение из одного символа
 		with().
 		post("/update.json");
-		
 		response.then().statusCode(HttpStatus.SC_FORBIDDEN);		//отправка сообщения не должна быть успешной, ожидаемый статус ответа 403 FORBIDDEN
 		response.then().body("errors.code", hasItems(187));			//в JSON, получаемом в ответ, должна быть ошибка с кодом 187
 	}
