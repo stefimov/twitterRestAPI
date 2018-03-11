@@ -17,13 +17,8 @@ import io.restassured.response.Response;
 
 import static org.hamcrest.Matchers.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import static io.restassured.RestAssured.*;  
 
 class TweetTestSuite {
@@ -42,6 +37,10 @@ class TweetTestSuite {
 		basePath = "/1.1/statuses";
 	}
 	
+	/*
+	 * Функция выполняемая после каждого тест-кейса.
+	 * Необходима для удаления созданных в тест-кейсе твитов.
+	 * */
 	@AfterEach
 	void clearTweets()
 	{
@@ -159,7 +158,7 @@ class TweetTestSuite {
 	 * Проверяем в кейсе невозможность отправки сообщения большей длины.
 	 * Твит не должен запоститься. В ответ на запрос должен придти ответ со статусом 403 FORBIDDEN
 	 * JSON должен содержать список ошибок, среди них должна быть ошибка "code":186
-	 * {errors:[{"code":170,"Message":"some_error_message"}]}
+	 * {errors:[{"code":186,"Message":"some_error_message"}]}
 	 */
 	@Test
 	void testCase05() throws IOException {
@@ -178,6 +177,41 @@ class TweetTestSuite {
 				post("/update.json");						
 		
 		response.then().statusCode(HttpStatus.SC_FORBIDDEN);			//отправка сообщения не должна быть успешной, ожидаемый статус ответа 403 FORBIDDEN
-		response.then().body("errors.code", hasItems(186));				//в JSON, получаемом в ответ должна быть ошибка с кодом 186
+		response.then().body("errors.code", hasItems(186));				//в JSON, получаемом в ответ, должна быть ошибка с кодом 186
+	}
+	
+	/*
+	 * Не должно быть возможности отправить 2 одинаковых твита подряд.
+	 * Отправка первого должна завершиться со статусом 200 OK
+	 * Отправка второго идентичного со статусом 403 FORBIDDEN
+	 * JSON должен содержать список ошибок, среди них должна быть ошибка "code":187
+	 * {"errors":[{"code":187,"message":"Status is a duplicate."}]}
+	 * */
+	@Test
+	void testCase06() {
+		String message = "a";	//отправляемое сообщение
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).									//добавляем сообщение из одного символа
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		
+		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
+		
+		//попытка повторно отправить твит с тем же сообщением
+		response = given().
+		auth().
+		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		param("status", message).									//добавляем сообщение из одного символа
+		with().
+		post("/update.json");
+		
+		response.then().statusCode(HttpStatus.SC_FORBIDDEN);		//отправка сообщения не должна быть успешной, ожидаемый статус ответа 403 FORBIDDEN
+		response.then().body("errors.code", hasItems(187));			//в JSON, получаемом в ответ, должна быть ошибка с кодом 187
 	}
 }
