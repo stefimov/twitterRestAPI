@@ -3,15 +3,18 @@ package restAssuredTwitter;
 import static io.restassured.RestAssured.basePath;
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.hamcrest.Matchers.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+
 import io.restassured.authentication.OAuthSignature;
+import io.restassured.internal.util.IOUtils;
 import io.restassured.response.Response;
 
 /*
@@ -51,7 +54,7 @@ class HashTagTestSuite {
 	 * В ответе должны получить 200 OK
 	 * В JSON нужно проверить, что хэштэг добавился в массив entities.hashtags
 	 * */
-	@Test
+	//@Test
 	void testCase00() {
 		String text = "a ";
 		String hashTag = "#b";
@@ -73,5 +76,69 @@ class HashTagTestSuite {
 																															//проверяем лежат ли в indices корректные значения расположения начального и конечного символа
 	}
 	
+	/*
+	 * Отправим сообщение содержащее некорректный хэштэг, состоящий из недопустимых символов
+	 * В ответе должны получить 200 OK
+	 * В JSON нужно проверить, что хэштэги не в массив entities.hashtags
+	 * */
+	//@Test
+	void testCase01() throws IOException {
+		String fileName = "illegalHashTagSymbols.txt";									//файл src/test/resources/illegalHashTagSymbols.txt с тестовой строкой содержащей символы, которые не образуют хэштэг 
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
+		InputStream is = classloader.getResourceAsStream(fileName);
+		String line = new String(IOUtils.toByteArray(is));
+		String message = "aa ";
+		
+		for(char ch:line.toCharArray())
+		{
+			message += "#" + ch + " ";
+		}
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).									//добавляем сообщение из одного символа
+				with().
+				post("/update.json");						
+
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
+		response.then().body("entities.hashtags", is(empty()));			//проверяем, что массив хэштъгов пуст
+	}
+	
+	/*
+	 * Отправим сообщение содержащее уникальный хэштэг.
+	 * В ответе должны получить 200 OK
+	 * С помощью GET search/tweets.json, указав в запросе q хэштэг, должен вернуться список в котором есть созданный нами твит
+	 * */
+	/*@Test
+	void testCase02() {
+		long unixTimestamp = Instant.now().getEpochSecond();
+		String hashtag = "#a" + unixTimestamp;
+		String message = "aa " + hashtag;
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).									//добавляем сообщение из одного символа
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		//GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
+		
+		response = given().
+		auth().
+		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		param("q", hashtag).									//добавляем сообщение из одного символа
+		param("since_id", id).
+		with().
+		get("https://api.twitter.com/1.1/search/tweets.json");
+		System.out.println(id);
+		System.out.println(response.asString());
+		
+	}*/
 	
 }
