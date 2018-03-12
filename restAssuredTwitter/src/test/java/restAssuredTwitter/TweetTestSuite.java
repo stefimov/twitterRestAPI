@@ -48,6 +48,23 @@ class TweetTestSuite {
 	}
 	
 	/*
+	 * Постинг должен проходить только от авторизованного пользователя. Попытаемся воспользоваться методом POST statuses/update без авторизации.
+	 * В ответ должны получить сообщение со статусом 400 BAD REQUEST.
+	 * */
+	@Test 
+	void testCase00()
+	{
+		String message = "asa"; 	//отправляемое сообщение
+		
+		Response response = given().
+				param("status", message).									//добавляем пустое сообщение
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_BAD_REQUEST);		
+	}
+	
+	/*
 	 * Проверяем метод POST statuses/update, который добавляет твиты в ленту.
 	 * Текст сообщения добавляется к запросу в параметре "status"
 	 * При попытке отправить пустое сообщение в ответ мы должны получить JSON с ошибкой 170:
@@ -249,5 +266,106 @@ class TweetTestSuite {
 		post("/update.json");
 		response.then().statusCode(HttpStatus.SC_FORBIDDEN);		//отправка сообщения не должна быть успешной, ожидаемый статус ответа 403 FORBIDDEN
 		response.then().body("errors.code", hasItems(187));			//в JSON, получаемом в ответ, должна быть ошибка с кодом 187
+	}
+	
+	/*
+	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json
+	 * Сначала мы создадим твит, затем удалим его. В ответе мы должны получить 200 OK
+	 * */
+	@Test
+	void testCase08()
+	{
+		String message = "a";	//отправляемое сообщение
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).									//добавляем сообщение из одного символа
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		
+		//удаляем твит методом /destroy/:id.json, передавая в pathParam id твита
+		response = given().
+		auth().
+		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		pathParam("id_str", id).									
+		with().
+		post("/destroy/{id_str}.json");
+		
+		response.then().statusCode(HttpStatus.SC_OK);			//удаление должно завершиться ответом со статусом 200 OK
+		response.then().body("id_str", equalTo(id));			//в ответе должен придти JSON с удалённым твитом, сверяем ID
+	}
+	
+	/*
+	 * Проверка на возможность получить доступ к удалённому твиту через метод GET /show.json
+	 * Сначала мы создадим твит, затем удалим его. После того как тваит удалён попробуем получить к нему доступ через GET /show.json
+	 * В ответ мы должны получить 404 NOT FOUND
+	 * */
+	@Test
+	void testCase09()
+	{
+		String message = "a";	//отправляемое сообщение
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).									//добавляем сообщение из одного символа
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		
+		//удаляем твит методом /destroy/:id.json, передавая в pathParam id твита
+		given().
+		auth().
+		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		pathParam("id_str", id).									
+		with().
+		post("/destroy/{id_str}.json").
+		then().
+		statusCode(HttpStatus.SC_OK);			//удаление должно завершиться ответом со статусом 200 OK
+		
+		//пытаемся получить доступ к удалённому твиту
+		given().
+		auth().oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		param("id", id).
+		when().
+		get("/show.json").
+		then().
+		statusCode(HttpStatus.SC_NOT_FOUND);
+	}
+	
+	/*
+	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json без авторизации
+	 * Сначала мы создадим твит, затем попытаемся удалим его без авторизации. В ответе мы должны получить 400 BAD REQUEST
+	 * */
+	@Test
+	void testCase10()
+	{
+		String message = "a";	//отправляемое сообщение
+		
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).									//добавляем сообщение из одного символа
+				with().
+				post("/update.json");						
+		
+		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
+		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
+		
+		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
+		
+		//пытаемся удалить твит без авторизации методом /destroy/:id.json, передавая в pathParam id твита
+		response = given().
+		pathParam("id_str", id).									
+		with().
+		post("/destroy/{id_str}.json");
+		
+		response.then().statusCode(HttpStatus.SC_BAD_REQUEST);			//удаление должно завершиться ответом со статусом 400 BAD REQUEST
 	}
 }
