@@ -51,7 +51,7 @@ class TweetTestSuite {
 	 * Постинг должен проходить только от авторизованного пользователя. Попытаемся воспользоваться методом POST statuses/update без авторизации.
 	 * В ответ должны получить сообщение со статусом 400 BAD REQUEST.
 	 * */
-	@Test 
+	//@Test 
 	void testCase00()
 	{
 		String message = "asa"; 	//отправляемое сообщение
@@ -71,7 +71,7 @@ class TweetTestSuite {
 	 * {errors:[{"code":170,"Message":"some_error_message"}]}
 	 * Пустое сообщение не должно появиться в ленте.
 	 * */
-	@Test
+	//@Test
 	void testCase01() {
 		String message = ""; 	//отправляемое сообщение
 		
@@ -93,7 +93,7 @@ class TweetTestSuite {
 	 * Ответ должен иметь статус 200 OK и содержать JSON с информацией о твите
 	 * Сообщение с отправленным символом должно появиться в ленте.
 	 * */
-	@Test
+	//@Test
 	void testCase02() {
 		String message = "a";	//отправляемое сообщение
 		
@@ -118,7 +118,7 @@ class TweetTestSuite {
 	 * мы получаем JSON со списком твитов, совершённых с данного аккаунта. В JSON мы ищем твит с текстом сообщения message и проверяем, совпадает
 	 * ли его "id_str" со "id_str" из JSON, полученного в ответ на отправку сообщения.
 	 * */
-	@Test
+	//@Test
 	void testCase03() {
 		String message = "abc";	//отправляемое сообщение
 		
@@ -148,7 +148,7 @@ class TweetTestSuite {
 	 * Максимальная длина сообщения для отправки равна 280 символов.
 	 * Проверяем в кейсе возможность отправки такого сообщения.
 	 */
-	@Test
+	//@Test
 	void testCase04() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
@@ -175,7 +175,7 @@ class TweetTestSuite {
 	 * Максимальная длина сообщения для отправки равна 280 символов.
 	 * Проверяем в кейсе возможность не урезается ли сообщение максимальной длины после постинга.
 	 */
-	@Test
+	//@Test
 	void testCase05() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
@@ -214,7 +214,7 @@ class TweetTestSuite {
 	 * JSON должен содержать список ошибок, среди них должна быть ошибка "code":186
 	 * {errors:[{"code":186,"Message":"some_error_message"}]}
 	 */
-	@Test
+	//@Test
 	void testCase06() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
@@ -241,7 +241,7 @@ class TweetTestSuite {
 	 * JSON должен содержать список ошибок, среди них должна быть ошибка "code":187
 	 * {"errors":[{"code":187,"message":"Status is a duplicate."}]}
 	 * */
-	@Test
+	//@Test
 	void testCase07() {
 		String message = "a";	//отправляемое сообщение
 		
@@ -272,7 +272,7 @@ class TweetTestSuite {
 	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json
 	 * Сначала мы создадим твит, затем удалим его. В ответе мы должны получить 200 OK
 	 * */
-	@Test
+	//@Test
 	void testCase08()
 	{
 		String message = "a";	//отправляемое сообщение
@@ -304,7 +304,7 @@ class TweetTestSuite {
 	 * Сначала мы создадим твит, затем удалим его. После того как тваит удалён попробуем получить к нему доступ через GET /show.json
 	 * В ответ мы должны получить 404 NOT FOUND
 	 * */
-	@Test
+	//@Test
 	void testCase09()
 	{
 		String message = "a";	//отправляемое сообщение
@@ -343,7 +343,7 @@ class TweetTestSuite {
 	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json без авторизации
 	 * Сначала мы создадим твит, затем попытаемся удалим его без авторизации. В ответе мы должны получить 400 BAD REQUEST
 	 * */
-	@Test
+	//@Test
 	void testCase10()
 	{
 		String message = "a";	//отправляемое сообщение
