@@ -1,7 +1,7 @@
 package restAssuredTwitter;
 
 /*
- * Набор тестов для проверки запросов, отвечающих за постинг и удаление твитов
+ * Набор тестов для проверки запросов, отвечающих за постинг различных твитов
  * https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update
  * 
  * */
@@ -19,6 +19,9 @@ import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import static io.restassured.RestAssured.*;  
 
 class TweetTestSuite {
@@ -52,7 +55,7 @@ class TweetTestSuite {
 	 * В ответ должны получить сообщение со статусом 400 BAD REQUEST.
 	 * */
 	//@Test 
-	void testCase00()
+	void testCase01()
 	{
 		String message = "asa"; 	//отправляемое сообщение
 		
@@ -72,7 +75,7 @@ class TweetTestSuite {
 	 * Пустое сообщение не должно появиться в ленте.
 	 * */
 	//@Test
-	void testCase01() {
+	void testCase02() {
 		String message = ""; 	//отправляемое сообщение
 		
 		Response response = given().
@@ -94,7 +97,7 @@ class TweetTestSuite {
 	 * Сообщение с отправленным символом должно появиться в ленте.
 	 * */
 	//@Test
-	void testCase02() {
+	void testCase03() {
 		String message = "a";	//отправляемое сообщение
 		
 		Response response = given().
@@ -118,8 +121,8 @@ class TweetTestSuite {
 	 * мы получаем JSON со списком твитов, совершённых с данного аккаунта. В JSON мы ищем твит с текстом сообщения message и проверяем, совпадает
 	 * ли его "id_str" со "id_str" из JSON, полученного в ответ на отправку сообщения.
 	 * */
-	@Test
-	void testCase03() {
+	//@Test
+	void testCase04() {
 		String message = "abc";	//отправляемое сообщение
 		String search_request = String.format("find {it.text == '%s'}.id_str", message);
 		Response response = given().
@@ -149,14 +152,14 @@ class TweetTestSuite {
 	 * Проверяем в кейсе возможность отправки такого сообщения.
 	 */
 	//@Test
-	void testCase04() throws IOException {
+	void testCase05() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
 		String message = new String(IOUtils.toByteArray(is)).substring(0, 280);		//считываем InputStream массив байтов, преобразуем в строку,
 																					//выделяем полстроку длиной 280 символов и формируем 
 																					//отправляемое сообщение нужной длины
-		
+		is.close();
 		Response response = given().
 				auth().
 				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
@@ -176,14 +179,14 @@ class TweetTestSuite {
 	 * Проверяем в кейсе возможность не урезается ли сообщение максимальной длины после постинга.
 	 */
 	//@Test
-	void testCase05() throws IOException {
+	void testCase06() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
 		String message = new String(IOUtils.toByteArray(is)).substring(0, 280);		//считываем InputStream массив байтов, преобразуем в строку,
 																					//выделяем полстроку длиной 280 символов и формируем 
 																					//отправляемое сообщение нужной длины
-		
+		is.close();
 		Response response = given().
 				auth().
 				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
@@ -215,14 +218,14 @@ class TweetTestSuite {
 	 * {errors:[{"code":186,"Message":"some_error_message"}]}
 	 */
 	//@Test
-	void testCase06() throws IOException {
+	void testCase07() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
 		String message = new String(IOUtils.toByteArray(is)).substring(0, 281);		//считываем InputStream массив байтов, преобразуем в строку,
 																					//выделяем полстроку длиной 281 символов и формируем 
 																					//отправляемое сообщение нужной длины
-		
+		is.close();
 		Response response = given().
 				auth().
 				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
@@ -242,7 +245,7 @@ class TweetTestSuite {
 	 * {"errors":[{"code":187,"message":"Status is a duplicate."}]}
 	 * */
 	//@Test
-	void testCase07() {
+	void testCase08() {
 		String message = "a";	//отправляемое сообщение
 		
 		Response response = given().
@@ -269,103 +272,23 @@ class TweetTestSuite {
 	}
 	
 	/*
-	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json
-	 * Сначала мы создадим твит, затем удалим его. В ответе мы должны получить 200 OK
+	 * Проверка на отправку произвольной строки в UTF-8 .
+	 * Отправка должна завершиться со статусом 200 OK
 	 * */
 	//@Test
-	void testCase08()
+	void testCase09() throws UnsupportedEncodingException
 	{
-		String message = "a";	//отправляемое сообщение
+		String message = UnicodeStringGenerator.getString("\u0600".charAt(0), "\u0610".charAt(0));
 		
 		Response response = given().
 				auth().
 				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-				param("status", message).									//добавляем сообщение из одного символа
+				header("Content-Type","application/x-www-form-urlencoded").
+				param("status", URLEncoder.encode(message, "UTF-8")).									//добавляем строку и кодируем её в url-encoded для передачи 
 				with().
-				post("/update.json");						
+				post("/update.json");
 		
-		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
-		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
-		
-		//удаляем твит методом /destroy/:id.json, передавая в pathParam id твита
-		response = given().
-		auth().
-		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-		pathParam("id_str", id).									
-		with().
-		post("/destroy/{id_str}.json");
-		
-		response.then().statusCode(HttpStatus.SC_OK);			//удаление должно завершиться ответом со статусом 200 OK
-		response.then().body("id_str", equalTo(id));			//в ответе должен придти JSON с удалённым твитом, сверяем ID
-	}
-	
-	/*
-	 * Проверка на возможность получить доступ к удалённому твиту через метод GET /show.json
-	 * Сначала мы создадим твит, затем удалим его. После того как тваит удалён попробуем получить к нему доступ через GET /show.json
-	 * В ответ мы должны получить 404 NOT FOUND
-	 * */
-	//@Test
-	void testCase09()
-	{
-		String message = "a";	//отправляемое сообщение
-		
-		Response response = given().
-				auth().
-				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-				param("status", message).									//добавляем сообщение из одного символа
-				with().
-				post("/update.json");						
-		
-		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
-		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
-		
-		//удаляем твит методом /destroy/:id.json, передавая в pathParam id твита
-		given().
-		auth().
-		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-		pathParam("id_str", id).									
-		with().
-		post("/destroy/{id_str}.json").
-		then().
-		statusCode(HttpStatus.SC_OK);			//удаление должно завершиться ответом со статусом 200 OK
-		
-		//пытаемся получить доступ к удалённому твиту
-		given().
-		auth().oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-		param("id", id).
-		when().
-		get("/show.json").
-		then().
-		statusCode(HttpStatus.SC_NOT_FOUND);
-	}
-	
-	/*
-	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json без авторизации
-	 * Сначала мы создадим твит, затем попытаемся удалим его без авторизации. В ответе мы должны получить 400 BAD REQUEST
-	 * */
-	//@Test
-	void testCase10()
-	{
-		String message = "a";	//отправляемое сообщение
-		
-		Response response = given().
-				auth().
-				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-				param("status", message).									//добавляем сообщение из одного символа
-				with().
-				post("/update.json");						
-		
-		response.then().statusCode(HttpStatus.SC_OK);					//отправка сообщения должна быть успешной, ожидаемый статус ответа 200 OK
-		String id = response.jsonPath().get("id_str").toString();		//получаем из ответа присвоенный нашему твиту id
-		
-		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);	//добавляем твит в сборщик мусора
-		
-		//пытаемся удалить твит без авторизации методом /destroy/:id.json, передавая в pathParam id твита
-		response = given().
-		pathParam("id_str", id).									
-		with().
-		post("/destroy/{id_str}.json");
-		
-		response.then().statusCode(HttpStatus.SC_BAD_REQUEST);			//удаление должно завершиться ответом со статусом 400 BAD REQUEST
+		//response.then().statusCode(HttpStatus.SC_OK);
+		System.out.println(response.asString());
 	}
 }

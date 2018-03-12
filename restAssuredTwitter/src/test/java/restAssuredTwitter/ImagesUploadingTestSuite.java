@@ -3,19 +3,12 @@ package restAssuredTwitter;
 import static io.restassured.RestAssured.basePath;
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import io.restassured.authentication.OAuthSignature;
 import io.restassured.internal.util.IOUtils;
 import io.restassured.response.Response;
@@ -49,11 +42,12 @@ class ImagesUploadingTestSuite {
 	 * в ответе должно придти 200 OK
 	 * */
 	//@Test
-	void test00() throws IOException {
+	void test01() throws IOException {
 		String fileName = "picNear5MB.png";											//файл из src/test/resources с тестовой картинкой размером чуть меньше 5Mb
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
 		String data = Base64.encodeBase64String(IOUtils.toByteArray(is));
+		is.close();
 		
 		Response response = given().
         auth().oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
@@ -72,11 +66,12 @@ class ImagesUploadingTestSuite {
 	 * NOTE: но, видимо, установленное ограничение отличается от указанного в документации, поэтому тест с 5.1Мб и 6Мб файлами фейлится. Не фейлится с файлом размером 8Мб+.
 	 * */
 	//@Test
-	void test01() throws IOException {
+	void test02() throws IOException {
 		String fileName = "picBigger5MB.png";											//файл из src/test/resources с тестовой картинкой размером чуть больше 5Mb
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
 		String data = Base64.encodeBase64String(IOUtils.toByteArray(is));
+		is.close();
 		
 		Response response = given().
         auth().oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
