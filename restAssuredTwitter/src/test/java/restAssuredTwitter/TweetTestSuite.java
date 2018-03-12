@@ -118,10 +118,10 @@ class TweetTestSuite {
 	 * мы получаем JSON со списком твитов, совершённых с данного аккаунта. В JSON мы ищем твит с текстом сообщения message и проверяем, совпадает
 	 * ли его "id_str" со "id_str" из JSON, полученного в ответ на отправку сообщения.
 	 * */
-	//@Test
+	@Test
 	void testCase03() {
 		String message = "abc";	//отправляемое сообщение
-		
+		String search_request = String.format("find {it.text == '%s'}.id_str", message);
 		Response response = given().
 				auth().
 				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
@@ -141,7 +141,7 @@ class TweetTestSuite {
 		with().
 		get("/user_timeline.json").
 		then().
-		body("find {it.text == 'abc'}.id_str", equalTo(id));		//ищем в ответие первый твит содержащий такой же текст что и в message, и если id_str совпадает, то твит добавился в ленту.
+		body(search_request, equalTo(id));		//ищем в ответие первый твит содержащий такой же текст что и в message, и если id_str совпадает, то твит добавился в ленту.
 	}
 	
 	/*
