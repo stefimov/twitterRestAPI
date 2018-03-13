@@ -2,7 +2,7 @@ package restAssuredTwitter;
 
 import static io.restassured.RestAssured.basePath;
 import static io.restassured.RestAssured.baseURI;
-import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.*;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
