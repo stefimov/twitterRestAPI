@@ -51,7 +51,7 @@ class RetweetTestSuite {
 	 * Должна быть возможность ретвитнуть собственное сообщение. При этом в случае успеха мы должны получить ответ 200 OK
 	 * retweet_count у сообщения должен увеличиться на 1, retweeted должен стать true
 	 * */
-	//@Test
+	@Test
 	void testCase01() {
 		String message = "a";
 		
@@ -91,7 +91,7 @@ class RetweetTestSuite {
 	 * {"errors":[{"code":327,"message":"You have already retweeted this Tweet."}]}
 	 * После попытки второго ретвита retweet_count у сообщения должен не должен увеличиться.
 	 * */
-	//@Test
+	@Test
 	void testCase02() {
 		String message = "a";
 		
@@ -146,7 +146,7 @@ class RetweetTestSuite {
 	 * Создадим твит на одном из аккаунтов, затем ретвитнем его со второго аккаунта. Запрос должен завершиться со статусом 200 OK 
 	 * Ретвитнутый твит должен появиться в ленье у второго аккаунта.
 	 * */
-	//@Test
+	@Test
 	void testCase03()
 	{
 		String message = "a";
@@ -175,7 +175,7 @@ class RetweetTestSuite {
 		response.then().statusCode(HttpStatus.SC_OK); 					//ретвит прошёл успешно
 		String retweet_id = response.jsonPath().getString("id_str");	//запоминаем id ретвита
 		
-		String mathing_str = String.format("find {it.id_str == '%s'}", retweet_id);		//строка для поиска твита с retweet_id в возвращённом 
+		String matching_str = String.format("find {it.id_str == '%s'}", retweet_id);		//строка для поиска твита с retweet_id в возвращённом 
 																						//GET /statuses/user_timeline списке
 		
 		//проверяем добавился ли ретвит в ленту второго аккаунта с помощью GET /statuses/user_timeline
@@ -188,13 +188,15 @@ class RetweetTestSuite {
 		with().
 		get("/user_timeline.json").
 		then().
-		body(mathing_str.toString(), is(not(empty())));
+		body(matching_str, is(not(empty())));
 	}
 	
 	/*
 	 * Проверяем невозможность ретвита несуществующего сообщения.
-	 * Создадим твит, затем удалим его и попытаемся ретвитнуть. Запрос должен завершиться со статусом 200 OK 
-	 * 
+	 * Создадим твит, затем удалим его и попытаемся ретвитнуть. Запрос должен завершиться со статусом 404 NOT FOUND 
+	 * Так же в JSON должна быть ошибка с кодом 144
+	 * {"errors":[{"code":144,"message":"No status found with that ID."}]}
+
 	 * */
 	@Test
 	void testCase04()
@@ -223,7 +225,6 @@ class RetweetTestSuite {
 		statusCode(HttpStatus.SC_OK);									//удаление завершилось успешно
 		
 		//пытаемся ретвитнуть удалённый твит
-		
 		response = given().
 				auth().
 				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
@@ -231,9 +232,78 @@ class RetweetTestSuite {
 				with().
 				post("/retweet/{tweet_id}.json");
 		
-		System.out.println(response.asString());
+		response.then().statusCode(HttpStatus.SC_NOT_FOUND);	//попытка второго ретвита должна завершиться с ошибкой 404 NOT FOUND
+		response.then().body("errors.code", hasItem(144));		//в JSON должна содержаться ошибка 144
+	}
+	
+	/*
+	 * Проверяем невозможность удаления ретвита запросом POST statuses/unretweet/:id.
+	 * Для этого создадим твит на первом аккаунте, затем ретвитнем его со второго аккаунта и попытаемся удалить. 
+	 * Запрос должен завершиться со статусом 200 OK. Ретвит должен исчезнуть из ленты второго аккаунта.
+	 * retweet_counter у первоначального сообщения должен уменьшится на 1
+	 * */
+	
+	@Test
+	void testCase05()
+	{
+		String message = "a";
 		
-		//response.then().statusCode(HttpStatus.SC_FORBIDDEN);	//попытка второго ретвита должна завершиться с ошибкой 403 FORBIDDEN
-		//response.then().body("errors.code", hasItem(327));		//в JSON должна содержаться ошибка 327
+		//создаём твит с первого аккаунта
+		Response response = given().
+				auth().
+				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+				param("status", message).
+				with().
+				post("/update.json");
+			
+		response.then().statusCode(HttpStatus.SC_OK); 						//постинг прошёл успешно
+		String id = response.jsonPath().getString("id_str");				//сохраняем id твита
+		int retweet_count = response.jsonPath().getInt("retweet_count");	//сохраняем количество ретвитов на момент создания
+		GarbageTweetsHandler.addTweet(id, authData.consumer_1_Name);		//добавляем твит к сборщику мусора
+		
+		//Ретвитим его со второго аккаунта
+		response = given().
+				auth().
+				oauth(authData.consumer_2_Key, authData.consumer_2_Secret, authData.application_Token_2, authData.application_Secret_2, OAuthSignature.HEADER).
+				pathParam("tweet_id", id).
+				with().
+				post("/retweet/{tweet_id}.json");
+
+		response.then().statusCode(HttpStatus.SC_OK); 					//ретвит прошёл успешно
+		String retweet_id = response.jsonPath().getString("id_str");	//запоминаем id ретвита
+		
+		//пытаемся удалить ретвит с помощью POST statuses/unretweet/:id
+		response = given().
+				auth().
+				oauth(authData.consumer_2_Key, authData.consumer_2_Secret, authData.application_Token_2, authData.application_Secret_2, OAuthSignature.HEADER).
+				pathParam("tweet_id", retweet_id).
+				with().
+				post("/unretweet/{tweet_id}.json");
+
+		response.then().statusCode(HttpStatus.SC_OK); 					//удаление прошло успешно
+		
+		String matching_str = String.format("find {it.id_str == '%s'}", retweet_id);		//строка для поиска твита с retweet_id в возвращённом 
+																							//GET /statuses/user_timeline списке
+		//проверяем удалился ли ретвит из ленты второго аккаунта GET /statuses/user_timeline
+		//в ответе должен придти JSON со списком твитов второго акка
+		//в нём не должно быть твитов с id_str == retweet_id
+		given().
+		auth().
+		oauth(authData.consumer_2_Key, authData.consumer_2_Secret, authData.application_Token_2, authData.application_Secret_2, OAuthSignature.HEADER).
+		param("screen_name", authData.consumer_2_Name).
+		with().
+		get("/user_timeline.json").
+		then().
+		body(matching_str, equalTo(null));					//если не будет найден твит с id_str == retweet_id, то поиск по matching_str вернёт null
+		
+		//с помощью запроса GET /show.json получим доступ к первоначальному твиту и проверим, что количество ретвитов стало таким же как и было до ретвита и удаления ретвита
+		given().
+		auth().
+		oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		param("id", id).
+		with().
+		get("/show.json").
+		then().
+		body("retweet_count", equalTo(retweet_count));
 	}
 }
