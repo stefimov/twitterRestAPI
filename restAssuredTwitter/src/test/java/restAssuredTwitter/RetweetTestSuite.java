@@ -1,7 +1,6 @@
 package restAssuredTwitter;
 
 import static io.restassured.RestAssured.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import static org.hamcrest.Matchers.*;
 
