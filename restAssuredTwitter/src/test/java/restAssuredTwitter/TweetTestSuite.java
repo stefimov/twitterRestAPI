@@ -19,9 +19,6 @@ import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import static io.restassured.RestAssured.*;  
 
 class TweetTestSuite {
@@ -54,7 +51,7 @@ class TweetTestSuite {
 	 * Постинг должен проходить только от авторизованного пользователя. Попытаемся воспользоваться методом POST statuses/update без авторизации.
 	 * В ответ должны получить сообщение со статусом 400 BAD REQUEST.
 	 * */
-	//@Test 
+	@Test 
 	void testCase01()
 	{
 		String message = "asa"; 	//отправляемое сообщение
@@ -74,7 +71,7 @@ class TweetTestSuite {
 	 * {errors:[{"code":170,"Message":"some_error_message"}]}
 	 * Пустое сообщение не должно появиться в ленте.
 	 * */
-	//@Test
+	@Test
 	void testCase02() {
 		String message = ""; 	//отправляемое сообщение
 		
@@ -96,7 +93,7 @@ class TweetTestSuite {
 	 * Ответ должен иметь статус 200 OK и содержать JSON с информацией о твите
 	 * Сообщение с отправленным символом должно появиться в ленте.
 	 * */
-	//@Test
+	@Test
 	void testCase03() {
 		String message = "a";	//отправляемое сообщение
 		
@@ -121,7 +118,7 @@ class TweetTestSuite {
 	 * мы получаем JSON со списком твитов, совершённых с данного аккаунта. В JSON мы ищем твит с текстом сообщения message и проверяем, совпадает
 	 * ли его "id_str" со "id_str" из JSON, полученного в ответ на отправку сообщения.
 	 * */
-	//@Test
+	@Test
 	void testCase04() {
 		String message = "abc";	//отправляемое сообщение
 		String search_request = String.format("find {it.text == '%s'}.id_str", message);
@@ -151,7 +148,7 @@ class TweetTestSuite {
 	 * Максимальная длина сообщения для отправки равна 280 символов.
 	 * Проверяем в кейсе возможность отправки такого сообщения.
 	 */
-	//@Test
+	@Test
 	void testCase05() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
@@ -178,7 +175,7 @@ class TweetTestSuite {
 	 * Максимальная длина сообщения для отправки равна 280 символов.
 	 * Проверяем в кейсе возможность не урезается ли сообщение максимальной длины после постинга.
 	 */
-	//@Test
+	@Test
 	void testCase06() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
@@ -217,7 +214,7 @@ class TweetTestSuite {
 	 * JSON должен содержать список ошибок, среди них должна быть ошибка "code":186
 	 * {errors:[{"code":186,"Message":"some_error_message"}]}
 	 */
-	//@Test
+	@Test
 	void testCase07() throws IOException {
 		String fileName = "longTweet.txt";											//файл src/test/resources с тестовой строкой на 285 символов
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
@@ -244,7 +241,7 @@ class TweetTestSuite {
 	 * JSON должен содержать список ошибок, среди них должна быть ошибка "code":187
 	 * {"errors":[{"code":187,"message":"Status is a duplicate."}]}
 	 * */
-	//@Test
+	@Test
 	void testCase08() {
 		String message = "a";	//отправляемое сообщение
 		

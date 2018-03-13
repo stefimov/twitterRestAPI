@@ -41,7 +41,7 @@ class ImagesUploadingTestSuite {
 	 * в этом тест-кейсе мы пытаемся загрузить картинку размером чуть меньше 5Мб
 	 * в ответе должно придти 200 OK
 	 * */
-	//@Test
+	@Test
 	void test01() throws IOException {
 		String fileName = "picNear5MB.png";											//файл из src/test/resources с тестовой картинкой размером чуть меньше 5Mb
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	

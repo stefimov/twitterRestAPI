@@ -5,8 +5,6 @@ import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,7 +48,7 @@ class TweetDeleteTestSuite {
 	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json
 	 * Сначала мы создадим твит, затем удалим его. В ответе мы должны получить 200 OK
 	 * */
-	//@Test
+	@Test
 	void testCase01()
 	{
 		String message = "a";	//отправляемое сообщение
@@ -82,7 +80,7 @@ class TweetDeleteTestSuite {
 	 * Сначала мы создадим твит, затем удалим его. После того как тваит удалён попробуем получить к нему доступ через GET /show.json
 	 * В ответ мы должны получить 404 NOT FOUND
 	 * */
-	//@Test
+	@Test
 	void testCase02()
 	{
 		String message = "a";	//отправляемое сообщение
@@ -121,7 +119,7 @@ class TweetDeleteTestSuite {
 	 * Проверка на удаление твита по id с помощью POST /destroy/:id.json без авторизации
 	 * Сначала мы создадим твит, затем попытаемся удалим его без авторизации. В ответе мы должны получить 400 BAD REQUEST
 	 * */
-	//@Test
+	@Test
 	void testCase03()
 	{
 		String message = "a";	//отправляемое сообщение
@@ -153,7 +151,7 @@ class TweetDeleteTestSuite {
 	 * В ответе мы должны получить 403 FORBIDDEN. В JSON должен быть указан код ошибки 183
 	 * {"code":183,"message":"You may not delete another user's status."}
 	 * */
-	//@Test
+	@Test
 	void testCase04()
 	{
 		String message = "a";	//отправляемое сообщение

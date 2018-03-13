@@ -55,7 +55,7 @@ class HashTagTestSuite {
 	 * В ответе должны получить 200 OK
 	 * В JSON нужно проверить, что хэштэг добавился в массив entities.hashtags
 	 * */
-	//@Test
+	@Test
 	void testCase01() {
 		String text = "a ";
 		String hashTag = "#b";
@@ -82,7 +82,7 @@ class HashTagTestSuite {
 	 * В ответе должны получить 200 OK
 	 * В JSON нужно проверить, что хэштэгов нет в массиве entities.hashtags
 	 * */
-	//@Test
+	@Test
 	void testCase02() throws IOException {
 		String fileName = "illegalHashTagSymbols.txt";									//файл src/test/resources/illegalHashTagSymbols.txt с тестовой строкой содержащей символы, которые не образуют хэштэг 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
