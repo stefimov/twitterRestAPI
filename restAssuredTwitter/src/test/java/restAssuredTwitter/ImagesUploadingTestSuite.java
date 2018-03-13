@@ -69,7 +69,7 @@ class ImagesUploadingTestSuite {
 	 * */
 	@Test
 	void test02() throws IOException {
-		String fileName = "picBigger5MB.png";											//файл из src/test/resources с тестовой картинкой размером чуть больше 5Mb
+		String fileName = "pic8MB.jpg";											//файл из src/test/resources с тестовой картинкой размером чуть больше 8Mb
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();	
 		InputStream is = classloader.getResourceAsStream(fileName);
 		String data = Base64.encodeBase64String(IOUtils.toByteArray(is));
