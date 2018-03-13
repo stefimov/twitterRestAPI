@@ -36,9 +36,9 @@ public class GarbageTweetsHandler {
 		for(Map.Entry<String, String> pair : tweetsToRemove.entrySet())
 		{
 			if(pair.getValue().equals(authData.consumer_1_Name))
-				deleteTweet(pair.getKey(), authData.consumer_1_Key, authData.consumer_1_Secret);
+				deleteTweet(pair.getKey(), authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret);
 			else
-				deleteTweet(pair.getKey(), authData.consumer_2_Key, authData.consumer_2_Secret);	
+				deleteTweet(pair.getKey(), authData.consumer_2_Key, authData.consumer_2_Secret, authData.application_Token_2, authData.application_Secret_2);	
 		}
 		
 		//очищаем список после того как все твиты были удалены
@@ -46,11 +46,11 @@ public class GarbageTweetsHandler {
 	}
 	
 	//в методе выполняем запрос POST /destroy/tweet_id.json для удаления необходимого твита
-	private static void deleteTweet(String id_str, String key, String secret)
+	private static void deleteTweet(String id_str, String key, String secret, String appToken, String appSecret)
 	{
 		given().
 		auth().
-		oauth(key, secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
+		oauth(key, secret, appToken, appSecret, OAuthSignature.HEADER).
 		pathParam("id_str", id_str).									
 		with().
 		post("https://api.twitter.com/1.1/statuses/destroy/{id_str}.json").
