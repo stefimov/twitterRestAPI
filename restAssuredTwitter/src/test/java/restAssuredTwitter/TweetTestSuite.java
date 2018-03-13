@@ -1,7 +1,7 @@
 package restAssuredTwitter;
 
 /*
- * Набор тестов для проверки запросов, отвечающих за постинг различных твитов
+ * Набор тестов для проверки запросов, отвечающих за постинг твитов и полдучение к ним доступа
  * https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/post-statuses-update
  * 
  * */
@@ -68,7 +68,7 @@ class TweetTestSuite {
 	}
 	
 	/*
-	 * Проверяем метод POST statuses/update, который добавляет твиты в ленту.
+	 * Проверяем запрос POST statuses/update, который добавляет твиты в ленту.
 	 * Текст сообщения добавляется к запросу в параметре "status"
 	 * При попытке отправить пустое сообщение в ответ мы должны получить JSON с ошибкой 170:
 	 * {errors:[{"code":170,"Message":"some_error_message"}]}
@@ -90,7 +90,7 @@ class TweetTestSuite {
 	}
 	
 	/*
-	 * Проверяем метод POST statuses/update, который добавляет твиты в ленту.
+	 * Проверяем запрос POST statuses/update, который добавляет твиты в ленту.
 	 * Текст сообщения добавляется к запросу в параметре "status"
 	 * При попытке отправить хотя бы с одним символом в параметре "status" должен совершиться постинг сообщения
 	 * Ответ должен иметь статус 200 OK и содержать JSON с информацией о твите
@@ -269,26 +269,5 @@ class TweetTestSuite {
 		post("/update.json");
 		response.then().statusCode(HttpStatus.SC_FORBIDDEN);		//отправка сообщения не должна быть успешной, ожидаемый статус ответа 403 FORBIDDEN
 		response.then().body("errors.code", hasItems(187));			//в JSON, получаемом в ответ, должна быть ошибка с кодом 187
-	}
-	
-	/*
-	 * Проверка на отправку произвольной строки в UTF-8 .
-	 * Отправка должна завершиться со статусом 200 OK
-	 * */
-	//@Test
-	void testCase09() throws UnsupportedEncodingException
-	{
-		String message = UnicodeStringGenerator.getString("\u0600".charAt(0), "\u0610".charAt(0));
-		
-		Response response = given().
-				auth().
-				oauth(authData.consumer_1_Key, authData.consumer_1_Secret, authData.application_Token, authData.application_Secret, OAuthSignature.HEADER).
-				header("Content-Type","application/x-www-form-urlencoded").
-				param("status", URLEncoder.encode(message, "UTF-8")).									//добавляем строку и кодируем её в url-encoded для передачи 
-				with().
-				post("/update.json");
-		
-		//response.then().statusCode(HttpStatus.SC_OK);
-		System.out.println(response.asString());
 	}
 }
