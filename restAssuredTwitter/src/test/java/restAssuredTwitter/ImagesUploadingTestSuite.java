@@ -9,6 +9,8 @@ import java.io.InputStream;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import io.restassured.authentication.OAuthSignature;
 import io.restassured.internal.util.IOUtils;
 import io.restassured.response.Response;
